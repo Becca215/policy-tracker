@@ -78,11 +78,28 @@ function printAllClientsDirect() {
   try {
     office = localStorage.getItem('selectedOffice') || '215';
   } catch (e) {}
+
+  // Get current week from localStorage (selectedWeekStart)
+  let weekRange = '';
+  try {
+    const weekStartStr = localStorage.getItem('selectedWeekStart');
+    if (weekStartStr && /^\d{4}-\d{2}-\d{2}$/.test(weekStartStr)) {
+      const [y, m, d] = weekStartStr.split('-').map(Number);
+      const weekStart = new Date(y, m - 1, d);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      // Format as: Week of 7/21/25 - 7/27/25
+      const fmt = (date) => `${date.getMonth() + 1}/${date.getDate()}/${String(date.getFullYear()).slice(-2)}`;
+      weekRange = `<div class='mb-2'><span class='fw-bold'>Week:</span> <span class='badge bg-info fs-6'>${fmt(weekStart)} - ${fmt(weekEnd)}</span></div>`;
+    }
+  } catch (e) {}
+
   let html = '';
   if (rows.length === 0) {
     html = '<div class="text-muted">No clients found.</div>';
   } else {
     html = `<div class='mb-2'><span class='fw-bold'>Office:</span> <span class='badge bg-primary fs-6'>${office}</span></div>` +
+      (weekRange || '') +
       `<div class='table-responsive'><table class="table table-sm table-bordered"><thead><tr><th>Name</th><th>Company</th><th>Last Day</th><th>Status</th><th>Language</th><th style="min-width:260px;">Notes</th></tr></thead><tbody>${rows.map(r => `<tr><td>${r.name}</td><td>${r.company}</td><td>${r.lastDay}</td><td>${r.status}</td><td>${r.language}</td><td>${r.notes}</td></tr>`).join('')}</tbody></table></div>`;
   }
   const printWindow = window.open('', '', 'width=900,height=1200');
